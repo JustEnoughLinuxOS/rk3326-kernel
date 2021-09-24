@@ -726,7 +726,7 @@ CFLAGS & LDFLAGS variables Makefile of the program concerned.
 
 If using gdb & you would like accurate displays of registers &
  stack traces compile without optimisation i.e make sure
-that there is no -O2 or similar on the CFLAGS line of the Makefile &
+that there is no -O3 or similar on the CFLAGS line of the Makefile &
 the emitted gcc commands, obviously this will produce worse code 
 ( not advisable for shipment ) but it is an  aid to the debugging process.
 

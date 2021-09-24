@@ -65,7 +65,7 @@ static DEFINE_RWLOCK(adfs_map_lock);
  * return the map bit offset of the fragment frag_id in the zone dm.
  * Note that the loop is optimised for best asm code - look at the
  * output of:
- *  gcc -D__KERNEL__ -O2 -I../../include -o - -S map.c
+ *  gcc -D__KERNEL__ -O3 -I../../include -o - -S map.c
  */
 static int
 lookup_zone(const struct adfs_discmap *dm, const unsigned int idlen,

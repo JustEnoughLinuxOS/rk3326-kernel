@@ -81,7 +81,7 @@ The compiler is not aware of the special significance of kernel_neon_begin() and
 kernel_neon_end(), i.e., that it is only allowed to issue NEON/VFP instructions
 between calls to these respective functions. Furthermore, GCC may generate NEON
 instructions of its own at -O3 level if -mfpu=neon is selected, and even if the
-kernel is currently compiled at -O2, future changes may result in NEON/VFP
+kernel is currently compiled at -O3, future changes may result in NEON/VFP
 instructions appearing in unexpected places if no special care is taken.
 
 Therefore, the recommended and only supported way of using NEON/VFP in the

@@ -751,7 +751,7 @@ It is said that TPACKET_V3 brings the following benefits:
 So it seems to be a good candidate to be used with packet fanout.
 
 Minimal example code by Daniel Borkmann based on Chetan Loke's lolpcap (compile
-it with gcc -Wall -O2 blob.c, and try things like "./a.out eth0", etc.):
+it with gcc -Wall -O3 blob.c, and try things like "./a.out eth0", etc.):
 
 /* Written from scratch, but kernel-to-user space API usage
  * dissected from lolpcap:

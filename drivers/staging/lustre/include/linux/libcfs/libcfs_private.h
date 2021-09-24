@@ -165,7 +165,7 @@ do {								    \
 
 /******************************************************************************/
 
-/* htonl hack - either this, or compile with -O2. Stupid byteorder/generic.h */
+/* htonl hack - either this, or compile with -O3. Stupid byteorder/generic.h */
 #if defined(__GNUC__) && (__GNUC__ >= 2) && !defined(__OPTIMIZE__)
 #define ___htonl(x) __cpu_to_be32(x)
 #define ___htons(x) __cpu_to_be16(x)

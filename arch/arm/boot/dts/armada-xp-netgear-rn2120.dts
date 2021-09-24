@@ -102,7 +102,7 @@
 				status = "okay";
 
 				/* Controller for rear fan #1 of 3 (Protechnic
-				 * MGT4012XB-O20, 8000RPM) near eSATA port */
+				 * MGT4012XB-O30, 8000RPM) near eSATA port */
 				g762_fan1: g762@3e {
 					compatible = "gmt,g762";
 					reg = <0x3e>;

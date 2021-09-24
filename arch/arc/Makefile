@@ -54,7 +54,7 @@ cflags-$(CONFIG_ARC_DW2_UNWIND)		+= -gdwarf-2
 endif
 
 ifndef CONFIG_CC_OPTIMIZE_FOR_SIZE
-# Generic build system uses -O2, we want -O3
+# Generic build system uses -O3, we want -O3
 # Note: No need to add to cflags-y as that happens anyways
 ARCH_CFLAGS += -O3
 endif

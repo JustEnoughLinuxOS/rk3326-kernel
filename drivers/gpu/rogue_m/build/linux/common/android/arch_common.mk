@@ -82,4 +82,4 @@ SYS_INCLUDES := \
  -isystem $(ANDROID_ROOT)/external/clang/lib/Headers
 endif
 
-OPTIM := -O2
+OPTIM := -O3

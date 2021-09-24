@@ -64,7 +64,7 @@ COMMON_CFLAGS := $(COMMON_FLAGS) \
 ifeq ($(BUILD),debug)
 COMMON_USER_FLAGS := -O0
 else
-OPTIM ?= -O2
+OPTIM ?= -O3
 ifeq ($(USE_LTO),1)
 COMMON_USER_FLAGS := $(OPTIM) -flto
 else
