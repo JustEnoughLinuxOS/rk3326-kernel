@@ -601,6 +601,12 @@ static long joydev_compat_ioctl(struct file *file,
 		goto out;
 	}
 
+	// [RG351P] OpenSimHardware OSH PB Controller
+	if (!strcmp(joydev->handle.dev->name, "OpenSimHardware OSH PB Controller")) {
+		joydev->nabs = 8;
+		joydev->nkey = 12;
+	}
+
 	switch (cmd) {
 
 	case JS_SET_TIMELIMIT:
@@ -664,6 +670,12 @@ static long joydev_ioctl(struct file *file,
 	if (!joydev->exist) {
 		retval = -ENODEV;
 		goto out;
+	}
+
+	// [RG351P] OpenSimHardware OSH PB Controller
+	if (!strcmp(joydev->handle.dev->name, "OpenSimHardware OSH PB Controller")) {
+		joydev->nabs = 8;
+		joydev->nkey = 12;
 	}
 
 	switch (cmd) {

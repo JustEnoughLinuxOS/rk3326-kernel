@@ -15,6 +15,15 @@
 #define EVDEV_MIN_BUFFER_SIZE	64U
 #define EVDEV_BUF_PACKETS	8
 
+#define RG351P_ABS_Z_MIN 500
+#define RG351P_ABS_Z_MAX 3500
+#define RG351P_ABS_RY_MIN 500
+#define RG351P_ABS_RY_MAX 3500
+#define RG351P_ABS_RX_MIN 500
+#define RG351P_ABS_RX_MAX 3200
+#define RG351P_ABS_RZ_MIN 500
+#define RG351P_ABS_RZ_MAX 3200
+
 #include <linux/poll.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
@@ -808,7 +817,7 @@ static int handle_eviocgbit(struct input_dev *dev,
 			    void __user *p, int compat_mode)
 {
 	unsigned long *bits;
-	int len;
+	int len, nr;
 
 	switch (type) {
 
@@ -822,6 +831,26 @@ static int handle_eviocgbit(struct input_dev *dev,
 	case EV_FF:  bits = dev->ffbit;  len = FF_MAX;  break;
 	case EV_SW:  bits = dev->swbit;  len = SW_MAX;  break;
 	default: return -EINVAL;
+	}
+
+	// [RG351P] OpenSimHardware OSH PB Controller
+	if (dev->id.vendor == 0x1209 && dev->id.product == 0x3100) {
+		if (type == EV_ABS) {
+			for (nr = ABS_THROTTLE; nr <= ABS_BRAKE; nr++) {
+				clear_bit(nr, bits);
+			}
+			for (nr = ABS_HAT1X; nr <= ABS_HAT3Y; nr++) {
+				clear_bit(nr, bits);
+			}
+			dev->absinfo[ABS_Z].minimum = RG351P_ABS_Z_MIN;		// Analog1 X
+			dev->absinfo[ABS_Z].maximum = RG351P_ABS_Z_MAX;
+			dev->absinfo[ABS_RY].minimum = RG351P_ABS_RY_MIN;	// Analog2 X
+			dev->absinfo[ABS_RY].maximum = RG351P_ABS_RY_MAX;
+			dev->absinfo[ABS_RX].minimum = RG351P_ABS_RX_MIN;	// Analog1 Y
+			dev->absinfo[ABS_RX].maximum = RG351P_ABS_RX_MAX;
+			dev->absinfo[ABS_RZ].minimum = RG351P_ABS_RZ_MIN;	// Analog2 Y
+			dev->absinfo[ABS_RZ].maximum = RG351P_ABS_RZ_MAX;
+		}
 	}
 
 	return bits_to_user(bits, len, size, p, compat_mode);
