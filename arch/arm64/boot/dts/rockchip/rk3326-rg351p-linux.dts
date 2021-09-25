@@ -74,7 +74,7 @@
 			248 249 250 251 252 253 254 255>;
 		default-brightness-level = <255>;
 	};
-	
+
 	leds: gpio_leds {
 		compatible = "gpio-leds";
 
@@ -281,8 +281,6 @@
 	status = "okay";
 };
 
-
-
 &dfi {
 	status = "okay";
 };
@@ -315,7 +313,6 @@
 	/delete-node/ opp-200000000;
 	/delete-node/ opp-300000000;
 };
-
 
 &i2c0 {
 	status = "okay";
@@ -626,6 +623,7 @@
 			virtual_power = <0>;
 			sample_res = <10>;
 
+
 			dc_det_gpio  = <&gpio0 RK_PB3 GPIO_ACTIVE_HIGH>;
 			bat_low_gpio = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
 
@@ -726,11 +724,9 @@
 	rockchip,sleep-debug-en = <1>;
 };
 
-
 &sfc {
 	status = "disabled";
 };
-
 
 &spi0 {
 	status = "disabled";
@@ -870,6 +866,4 @@
 	};
 };
 
-/* DON'T PUT ANYTHING BELOW HERE.  PUT IT ABOVE PINCTRL */
-/* DON'T PUT ANYTHING BELOW HERE.  PUT IT ABOVE PINCTRL */
 /* DON'T PUT ANYTHING BELOW HERE.  PUT IT ABOVE PINCTRL */

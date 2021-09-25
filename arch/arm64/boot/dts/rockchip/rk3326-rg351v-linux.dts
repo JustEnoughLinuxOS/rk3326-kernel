@@ -53,20 +53,6 @@
 		status = "okay";
 	};
 
-	leds: gpio_leds {
-		compatible = "gpio-leds";
-
-		pinctrl-names = "led_pins";
-		pinctrl-0 = <&led_pins>;
-
-		/* Blue LED : GPIO0_C1 */
-		heartbeat {
-			label = "blue:heartbeat";
-			gpios = <&gpio0 RK_PC1 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "heartbeat";
-		};
-	};
-
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pwms = <&pwm1 0 25000 0>;
@@ -103,7 +89,21 @@
 			232 233 234 235 236 237 238 239
 			240 241 242 243 244 245 246 247
 			248 249 250 251 252 253 254 255>;
-		default-brightness-level = <200>;
+		default-brightness-level = <255>;
+	};
+
+	leds: gpio_leds {
+		compatible = "gpio-leds";
+
+		pinctrl-names = "led_pins";
+		pinctrl-0 = <&led_pins>;
+
+		/* Blue LED : GPIO0_C1 */
+		heartbeat {
+			label = "blue:heartbeat";
+			gpios = <&gpio0 RK_PC1 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+		};
 	};
 
 	rk817-sound {
@@ -216,6 +216,35 @@
 
 		dsi,format = <MIPI_DSI_FMT_RGB888>;
 		dsi,lanes = <4>;
+
+		/*
+			- panel-init-sequence data description -
+			  mipi_cmd, delay(ms), len, lcd_cmd, lcd_data...
+
+			- mipi_cmd description -
+			  05 : MIPI_DSI_SHORT_WRITE
+			  15 : MIPI_DSI_SHORT_WRITE_PARAM
+			  39 : MIPI_DSI_LONG_WRITE
+
+			- ILI9486 (Initialize sequence) -
+			  11: Sleep out & 250ms wait
+			  E0: PositiveGamma
+			  E1: NegativeGamma
+			  C0: PowerControl_1
+			  C1: PowerControl_2
+			  C5: VcomControl
+			  36: MemoryAccess
+			  3A: InterfacePixelFormat
+			  B0: InterfaceModeControl
+			  B1: FrameRateControl
+			  B4: DisplayInversionControl
+			  B6: DisplayFunctionControl
+			  E9: SetImageFunction
+			  F7: AdjustControl_3
+			  21: DisplayInversionOn
+			  29: DisplayOn & 50ms wait
+		*/
+
 		panel-init-sequence = [
 			15 00 02 FF 30
 			15 00 02 FF 52
@@ -438,11 +467,6 @@
 	status = "okay";
 };
 
-&route_dsi {
-	connect = <&vopb_out_dsi>;
-	status = "okay";
-};
-
 &dfi {
 	status = "okay";
 };
@@ -462,23 +486,18 @@
 	};
 };
 
-&gpu_opp_table {
-	/delete-node/ opp-200000000;
-	/delete-node/ opp-300000000;
-};
-
 &emmc {
-	status = "disabled";
-};
-
-
-&sfc {
 	status = "disabled";
 };
 
 &gpu {
 	mali-supply = <&vdd_logic>;
 	status = "okay";
+};
+
+&gpu_opp_table {
+	/delete-node/ opp-200000000;
+	/delete-node/ opp-300000000;
 };
 
 &i2c0 {
@@ -719,7 +738,19 @@
 				};
 			};
 
+			/* Rev 1.1 WIFI Power */
+			vcc_wifi: LDO_REG9 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
 
+				regulator-name = "vcc_wifi";
+				regulator-state-mem {
+					regulator-off-in-suspend;
+					regulator-suspend-microvolt = <3300000>;
+				};
+			};
 
 			dcdc_boost: BOOST {
 				regulator-always-on;
@@ -843,14 +874,6 @@
 	status = "okay";
 };
 
-&rkisp1 {
-	status = "okay";
-};
-
-&spi0 {
-	status = "disabled";
-};
-
 &pmu_io_domains {
 	/* PMU GRF Register Voltage select control */
 	status = "okay";
@@ -861,12 +884,22 @@
 	pmuio2-supply = <&vcc3v3_pmu>;
 };
 
+/* RG351V Motor PWM */
 &pwm0 {
 	status = "okay";
 };
 
 /* LCD Backlight PWM */
 &pwm1 {
+	status = "okay";
+};
+
+&route_dsi {
+	connect = <&vopb_out_dsi>;
+	status = "okay";
+};
+
+&rkisp1 {
 	status = "okay";
 };
 
@@ -877,6 +910,14 @@
 &rockchip_suspend {
 	status = "okay";
 	rockchip,sleep-debug-en = <1>;
+};
+
+&sfc {
+	status = "disabled";
+};
+
+&spi0 {
+	status = "disabled";
 };
 
 &saradc {
@@ -1024,5 +1065,4 @@
 	};
 };
 
-/* DON'T PUT ANYTHING BELOW HERE.  PUT IT ABOVE PINCTRL */
 /* DON'T PUT ANYTHING BELOW HERE.  PUT IT ABOVE PINCTRL */
