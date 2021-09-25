@@ -23,22 +23,22 @@
                 bootargs = "";
 	};
 
-        gpio_keys: rg351-keys {
-                        compatible = "gpio-keys";
-                        #address-cells = <1>;
-                        #size-cells = <0>;
-                        autorepeat;
-                        button@0 {
-                                label = "GPIO BTN-VOLUP";
-                                linux,code = <KEY_VOLUMEUP>;
-                                gpios = <&gpio2 RK_PA0 GPIO_ACTIVE_LOW>;
-                        };
-                        button@1 {
-                                label = "GPIO BTN-VOLDN";
-                                linux,code = <KEY_VOLUMEDOWN>;
-                                gpios = <&gpio2 RK_PA1 GPIO_ACTIVE_LOW>;
-                        };
-        };
+	gpio_keys: rg351-keys {
+		compatible = "gpio-keys";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		autorepeat;
+		button@0 {
+			label = "GPIO BTN-VOLUP";
+			linux,code = <KEY_VOLUMEUP>;
+			gpios = <&gpio2 RK_PA0 GPIO_ACTIVE_LOW>;
+		};
+		button@1 {
+			label = "GPIO BTN-VOLDN";
+			linux,code = <KEY_VOLUMEDOWN>;
+			gpios = <&gpio2 RK_PA1 GPIO_ACTIVE_LOW>;
+		};
+	};
 
 	fiq-debugger {
 		compatible = "rockchip,fiq-debugger";
@@ -89,7 +89,7 @@
 			232 233 234 235 236 237 238 239
 			240 241 242 243 244 245 246 247
 			248 249 250 251 252 253 254 255>;
-		default-brightness-level = <200>;
+		default-brightness-level = <255>;
 	};
 
 	leds: gpio_leds {
@@ -148,9 +148,7 @@
 		regulator-always-on;
 		vin-supply = <&vccsys>;
 	};
-
 };
-
 
 &bus_apll {
 	bus-supply = <&vdd_logic>;
@@ -477,11 +475,6 @@
 };
 
 &dsi_in_vopb {
-	status = "okay";
-};
-
-&route_dsi {
-	connect = <&vopb_out_dsi>;
 	status = "okay";
 };
 
