@@ -669,7 +669,7 @@ static int joypad_input_setup(struct device *dev, struct joypad *joypad)
 	device_property_read_u32(dev, "joypad-revision", &joypad_revision);
 	device_property_read_u32(dev, "joypad-product", &joypad_product);
 	input->id.bustype = BUS_HOST;
-	input->id.vendor  = 0x484B;
+	input->id.vendor  = 0x0001;
 	input->id.product = (u16)joypad_product;
 	input->id.version = (u16)joypad_revision;
 

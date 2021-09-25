@@ -111,10 +111,6 @@
 		rockchip,temp-hysteresis = <5000>;
 		rockchip,low-temp = <0>;
 		rockchip,low-temp-min-volt = <1000000>;
-		rockchip,low-temp-adjust-volt = <
-			/* MHz    MHz    uV */
-			0      1512   50000
-		>;
 
 		clocks = <&cru PLL_APLL>;
 		rockchip,avs-scale = <4>;
@@ -1354,10 +1350,10 @@
 		rockchip,temp-hysteresis = <5000>;
 		rockchip,low-temp = <0>;
 		rockchip,low-temp-min-volt = <1000000>;
-		rockchip,low-temp-adjust-volt = <
-			/* MHz    MHz    uV */
-			0      480     50000
-		>;
+		//rockchip,low-temp-adjust-volt = <
+		//	/* MHz    MHz    uV */
+		//	0      480     50000
+		//>;
 
 		rockchip,max-volt = <1175000>;
 		rockchip,evb-irdrop = <25000>;
