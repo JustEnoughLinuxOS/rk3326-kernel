@@ -119,6 +119,10 @@
 		/* poll device interval (ms), adc read interval */
 		poll-interval = <10>;
 
+		/* required for RG351MP */
+		invert-absx;
+		invert-absy;
+
 		/* gpio button auto repeat set value : default disable */
 		/*
 			autorepeat;
