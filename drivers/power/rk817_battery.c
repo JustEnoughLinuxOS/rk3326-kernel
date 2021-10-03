@@ -2020,7 +2020,7 @@ static int rk817_bat_get_charge_state(struct rk817_battery_device *battery)
 }
 
 //static int rg351p_battery_skip = 30000;
-/*static int rg351p_battery_pre_voltage = 5000;
+static int rg351p_battery_pre_voltage = 5000;
 #define RG351_BAT_MAX_VOLTAGE 3900
 #define RG351_BAT_MIN_VOLTAGE 3300
 static int rk817_battery_rg351p_capacity_get(int voltage,int charge_status)
@@ -2040,7 +2040,7 @@ static int rk817_battery_rg351p_capacity_get(int voltage,int charge_status)
 	//}
 	return (rg351p_battery_pre_voltage-RG351_BAT_MIN_VOLTAGE)/((RG351_BAT_MAX_VOLTAGE-RG351_BAT_MIN_VOLTAGE)/100);
 	
-}*/
+}
 
 static int rk817_battery_get_property(struct power_supply *psy,
 				      enum power_supply_property psp,
@@ -2060,13 +2060,13 @@ static int rk817_battery_get_property(struct power_supply *psy,
 			val->intval = VIRTUAL_VOLTAGE * 1000;
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY:
-
+		/*
 		val->intval = (battery->dsoc  + 500) / 1000;
 		if (battery->pdata->bat_mode == MODE_VIRTUAL)
 			val->intval = VIRTUAL_SOC;
-
+		*/
 		//dev_err(dev, "%d\n",battery->voltage_avg);
-		//val->intval = rk817_battery_rg351p_capacity_get(battery->voltage_avg,rk817_bat_get_charge_state(battery));
+		val->intval = rk817_battery_rg351p_capacity_get(battery->voltage_avg,rk817_bat_get_charge_state(battery));
 		
 		break;
 	case POWER_SUPPLY_PROP_HEALTH:
