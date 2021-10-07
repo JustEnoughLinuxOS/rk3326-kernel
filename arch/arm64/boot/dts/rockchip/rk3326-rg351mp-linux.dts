@@ -318,7 +318,7 @@
 		regulator-max-microvolt = <3800000>;
 	};
 
-	vcc_host: vcc_host {
+/*	vcc_host: vcc_host {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_host";
 		regulator-min-microvolt = <5000000>;
@@ -328,7 +328,7 @@
 		enable-active-high;
 		regulator-always-on;
 		vin-supply = <&vccsys>;
-	};
+	};*/
 };
 
 &bus_apll {
