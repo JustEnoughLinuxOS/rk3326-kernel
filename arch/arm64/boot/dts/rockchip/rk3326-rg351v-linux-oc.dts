@@ -70,7 +70,7 @@
 			 80  81  82  83  84  85  86  87
 			 88  89  90  91  92  93  94  95
 			 96  97  98  99 100 101 102 >;
-		default-brightness-level = <75>; /* default 75% */
+		default-brightness-level = <51>; /* default 50% */
 	};
 
 	leds: gpio_leds {
@@ -437,15 +437,15 @@
 			native-mode = <&timing0>;
 
 			timing0: timing0 {
-				clock-frequency = <25500000>;
+				clock-frequency = <26400000>;
 				hactive = <640>;
 				vactive = <480>;
-				hfront-porch = <70>;
+				hfront-porch = <119>;
 				hsync-len = <2>;
-				hback-porch = <90>;
-				vfront-porch = <18>;
+				hback-porch = <119>;
+				vfront-porch = <13>;
 				vsync-len = <2>;
-				vback-porch = <30>;
+				vback-porch = <5>;
 				hsync-active = <0>;
 				vsync-active = <0>;
 				de-active = <0>;
