@@ -37,6 +37,7 @@
 #include <linux/property.h>
 #include <linux/of_gpio.h>
 #include <linux/delay.h>
+#include <linux/pwm.h>
 
 /*----------------------------------------------------------------------------*/
 #define DRV_NAME "odroidgo3_joypad"
@@ -45,6 +46,7 @@
 #define	ADC_MAX_VOLTAGE		1800
 #define	ADC_DATA_TUNING(x, p)	((x * p) / 100)
 #define	ADC_TUNING_DEFAULT	180
+#define	CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
 /*----------------------------------------------------------------------------*/
 /*
@@ -146,7 +148,51 @@ struct joypad {
 
 	/* amux debug channel */
 	int debug_ch;
+
+	/* pwm device for rumble*/
+	struct input_dev *input;
+	struct pwm_device *pwm;
+	struct work_struct play_work;
+	u16 level;
+	u16 boost_weak;
+	u16 boost_strong;
 };
+
+static int pwm_vibrator_start(struct joypad *joypad)
+{
+	struct device *pdev = joypad->input->dev.parent;
+	struct pwm_state state;
+	int err;
+
+	pwm_get_state(joypad->pwm, &state);
+	pwm_set_relative_duty_cycle(&state, joypad->level, 0xffff);
+	state.enabled = true;
+
+	err = pwm_apply_state(joypad->pwm, &state);
+	if (err) {
+		dev_err(pdev, "failed to apply pwm state: %d", err);
+		return err;
+	}
+
+	return 0;
+}
+
+static void pwm_vibrator_stop(struct joypad *joypad)
+{
+	pwm_disable(joypad->pwm);
+}
+
+static void pwm_vibrator_play_work(struct work_struct *work)
+{
+	struct joypad *joypad = container_of(work,
+					struct joypad, play_work);
+
+	if (joypad->level)
+		pwm_vibrator_start(joypad);
+	else
+		pwm_vibrator_stop(joypad);
+}
+
 
 /*----------------------------------------------------------------------------*/
 //
@@ -496,6 +542,121 @@ static DEVICE_ATTR(amux_debug, S_IWUSR | S_IRUGO,
 
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
+/*
+ * ATTRIBUTES:
+ *
+ * /sys/devices/platform/odroidgo2_joypad/rumble_period [rw]
+ */
+/*----------------------------------------------------------------------------*/
+static ssize_t joypad_store_period(struct device *dev,
+				      struct device_attribute *attr,
+				      const char *buf,
+				      size_t count)
+{
+	struct platform_device *pdev  = to_platform_device(dev);
+	struct joypad *joypad = platform_get_drvdata(pdev);
+
+	mutex_lock(&joypad->lock);
+	pwm_set_period(joypad->pwm, simple_strtoul(buf, NULL, 21));
+	mutex_unlock(&joypad->lock);
+
+	return count;
+}
+
+/*----------------------------------------------------------------------------*/
+static ssize_t joypad_show_period(struct device *dev,
+				     struct device_attribute *attr,
+				     char *buf)
+{
+	struct platform_device *pdev  = to_platform_device(dev);
+	struct joypad *joypad = platform_get_drvdata(pdev);
+
+	return sprintf(buf, "%d\n", pwm_get_period(joypad->pwm));
+}
+
+/*----------------------------------------------------------------------------*/
+static DEVICE_ATTR(rumble_period, S_IWUSR | S_IRUGO,
+		   joypad_show_period,
+		   joypad_store_period);
+
+
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*
+ * ATTRIBUTES:
+ *
+ * /sys/devices/platform/odroidgo2_joypad/rumble_boost_strong [rw]
+ */
+/*----------------------------------------------------------------------------*/
+static ssize_t joypad_store_boost_strong(struct device *dev,
+				      struct device_attribute *attr,
+				      const char *buf,
+				      size_t count)
+{
+	struct platform_device *pdev  = to_platform_device(dev);
+	struct joypad *joypad = platform_get_drvdata(pdev);
+
+	mutex_lock(&joypad->lock);
+	joypad->boost_strong = simple_strtoul(buf, NULL, 10);
+	mutex_unlock(&joypad->lock);
+
+	return count;
+}
+
+/*----------------------------------------------------------------------------*/
+static ssize_t joypad_show_boost_strong(struct device *dev,
+				     struct device_attribute *attr,
+				     char *buf)
+{
+	struct platform_device *pdev  = to_platform_device(dev);
+	struct joypad *joypad = platform_get_drvdata(pdev);
+
+	return sprintf(buf, "%d\n", joypad->boost_strong);
+}
+
+/*----------------------------------------------------------------------------*/
+static DEVICE_ATTR(rumble_boost_strong, S_IWUSR | S_IRUGO,
+		   joypad_show_boost_strong,
+		   joypad_store_boost_strong);
+
+/*----------------------------------------------------------------------------*/
+/*
+ * ATTRIBUTES:
+ *
+ * /sys/devices/platform/odroidgo2_joypad/rumble_boost_weak [rw]
+ */
+/*----------------------------------------------------------------------------*/
+static ssize_t joypad_store_boost_weak(struct device *dev,
+				      struct device_attribute *attr,
+				      const char *buf,
+				      size_t count)
+{
+	struct platform_device *pdev  = to_platform_device(dev);
+	struct joypad *joypad = platform_get_drvdata(pdev);
+
+	mutex_lock(&joypad->lock);
+	joypad->boost_weak = simple_strtoul(buf, NULL, 10);
+	mutex_unlock(&joypad->lock);
+
+	return count;
+}
+
+/*----------------------------------------------------------------------------*/
+static ssize_t joypad_show_boost_weak(struct device *dev,
+				     struct device_attribute *attr,
+				     char *buf)
+{
+	struct platform_device *pdev  = to_platform_device(dev);
+	struct joypad *joypad = platform_get_drvdata(pdev);
+
+	return sprintf(buf, "%d\n", joypad->boost_weak);
+}
+
+/*----------------------------------------------------------------------------*/
+static DEVICE_ATTR(rumble_boost_weak, S_IWUSR | S_IRUGO,
+		   joypad_show_boost_weak,
+		   joypad_store_boost_weak);
+
 static struct attribute *joypad_attrs[] = {
 	&dev_attr_poll_interval.attr,
 	&dev_attr_adc_fuzz.attr,
@@ -503,6 +664,9 @@ static struct attribute *joypad_attrs[] = {
 	&dev_attr_enable.attr,
 	&dev_attr_adc_cal.attr,
 	&dev_attr_amux_debug.attr,
+	&dev_attr_rumble_period.attr,
+	&dev_attr_rumble_boost_strong.attr,
+	&dev_attr_rumble_boost_weak.attr,
 	NULL,
 };
 
@@ -635,6 +799,9 @@ static void joypad_close(struct input_polled_dev *poll_dev)
 	mutex_lock(&joypad->lock);
 	joypad->enable = false;
 	mutex_unlock(&joypad->lock);
+
+	cancel_work_sync(&joypad->play_work);
+	pwm_vibrator_stop(joypad);
 
 	dev_info(joypad->dev, "%s : closed\n", __func__);
 }
@@ -868,7 +1035,51 @@ static int joypad_gpio_setup(struct device *dev, struct joypad *joypad)
 	return	0;
 }
 
+static int rumble_play_effect(struct input_dev *dev, void *data, struct ff_effect *effect)
+{
+	struct joypad *joypad = data;
+	u32 boosted_level;
+	if (effect->type != FF_RUMBLE)
+		return 0;
+
+	if (effect->u.rumble.strong_magnitude)
+		boosted_level = effect->u.rumble.strong_magnitude + joypad->boost_strong;
+	else
+		boosted_level = effect->u.rumble.weak_magnitude + joypad->boost_weak;
+
+	joypad->level = (u16)CLAMP(boosted_level, 0, 0xffff);
+
+	dev_info(joypad->dev,"joypad->level = %d",  joypad->level);
+	schedule_work(&joypad->play_work);
+	return 0;
+}
 /*----------------------------------------------------------------------------*/
+static int joypad_rumble_setup(struct device *dev, struct joypad *joypad)
+{
+	int err;
+	struct pwm_state state;
+
+	joypad->pwm = devm_pwm_get(dev, "enable");
+	if (IS_ERR(joypad->pwm))
+	{
+		dev_err(dev, "rumble get error\n");
+		return -EINVAL;
+	}
+
+	INIT_WORK(&joypad->play_work, pwm_vibrator_play_work);
+
+	/* Sync up PWM state and ensure it is off. */
+	pwm_init_state(joypad->pwm, &state);
+	state.enabled = false;
+	err = pwm_apply_state(joypad->pwm, &state);
+	if (err) {
+		dev_err(dev, "failed to apply initial PWM state: %d",
+			err);
+		return err;
+	}
+	dev_info(dev, "rumble setup success!\n");
+	return 0;
+}
 static int joypad_input_setup(struct device *dev, struct joypad *joypad)
 {
 	struct input_polled_dev *poll_dev;
@@ -876,7 +1087,8 @@ static int joypad_input_setup(struct device *dev, struct joypad *joypad)
 	int nbtn, error;
 	u32 joypad_revision = 0;
 	u32 joypad_product = 0;
-
+	u32 boost_weak = 0;
+	u32 boost_strong = 0;
 	poll_dev = devm_input_allocate_polled_device(dev);
 	if (!poll_dev) {
 		dev_err(dev, "no memory for polled device\n");
@@ -890,6 +1102,7 @@ static int joypad_input_setup(struct device *dev, struct joypad *joypad)
 	poll_dev->close		= joypad_close;
 
 	input = poll_dev->input;
+	joypad->input = poll_dev->input;
 
 	device_property_read_string(dev, "joypad-name", &input->name);
 	input->phys = DRV_NAME"/input0";
@@ -918,6 +1131,20 @@ static int joypad_input_setup(struct device *dev, struct joypad *joypad)
 		dev_info(dev,
 			"%s : adc tuning_p = %d, adc_tuning_n = %d\n\n",
 			__func__, adc->tuning_p, adc->tuning_n);
+	}
+
+	/* Rumble setip*/
+	device_property_read_u32(dev, "rumble-boost-weak", &boost_weak);
+	device_property_read_u32(dev, "rumble-boost-strong", &boost_strong);
+	joypad->boost_weak = boost_weak;
+	joypad->boost_strong = boost_strong;
+	dev_info(dev, "Boost = %d, %d",boost_weak, boost_strong);
+	input_set_capability(input, EV_FF, FF_RUMBLE);
+	error = input_ff_create_memless(input, joypad, rumble_play_effect);
+	if (error) {
+		dev_err(dev, "unable to register rumble, err=%d\n",
+			error);
+		return error;
 	}
 
 	/* GPIO key setup */
@@ -1030,6 +1257,31 @@ static int joypad_dt_parse(struct device *dev, struct joypad *joypad)
 	return error;
 }
 
+static int __maybe_unused joypad_suspend(struct device *dev)
+{
+	struct platform_device *pdev  = to_platform_device(dev);
+	struct joypad *joypad = platform_get_drvdata(pdev);
+
+	cancel_work_sync(&joypad->play_work);
+	if (joypad->level)
+		pwm_vibrator_stop(joypad);
+
+	return 0;
+}
+
+static int __maybe_unused joypad_resume(struct device *dev)
+{
+	struct platform_device *pdev  = to_platform_device(dev);
+	struct joypad *joypad = platform_get_drvdata(pdev);
+
+	if (joypad->level)
+		pwm_vibrator_start(joypad);
+
+	return 0;
+}
+
+static SIMPLE_DEV_PM_OPS(joypad_pm_ops,
+			 joypad_suspend, joypad_resume);
 /*----------------------------------------------------------------------------*/
 static int joypad_probe(struct platform_device *pdev)
 {
@@ -1066,6 +1318,14 @@ static int joypad_probe(struct platform_device *pdev)
 		dev_err(dev, "input setup failed!(err = %d)\n", error);
 		return error;
 	}
+
+	/* rumble setup */
+	error = joypad_rumble_setup(dev, joypad);
+	if (error) {
+		dev_err(dev, "rumble setup failed!(err = %d)\n", error);
+		return error;
+	}
+
 	dev_info(dev, "%s : probe success\n", __func__);
 	return 0;
 }
@@ -1083,6 +1343,7 @@ static struct platform_driver joypad_driver = {
 	.probe = joypad_probe,
 	.driver = {
 		.name = DRV_NAME,
+		.pm = &joypad_pm_ops,
 		.of_match_table = of_match_ptr(joypad_of_match),
 	},
 };
