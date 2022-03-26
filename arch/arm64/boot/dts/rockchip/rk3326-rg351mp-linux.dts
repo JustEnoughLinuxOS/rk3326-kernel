@@ -48,7 +48,7 @@
                 rumble-boost-weak = <0x0000>;
                 rumble-boost-strong = <0x0000>;
 
-                joypad-name = "GO-Super Gamepad";
+                joypad-name = "retrogame_joypad";
                 joypad-product = <0x1100>;
                 joypad-revision = <0x0100>;
 
