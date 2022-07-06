@@ -673,6 +673,7 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning,stringop-overflow,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning,uninitialized,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning,restrict)
 KBUILD_CFLAGS   += $(call cc-disable-warning,misleading-indentation)
+KBUILD_CFLAGS   += $(call cc-disable-warning,array-bounds)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
