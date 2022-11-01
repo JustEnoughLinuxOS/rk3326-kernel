@@ -674,6 +674,10 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning,uninitialized,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning,restrict)
 KBUILD_CFLAGS   += $(call cc-disable-warning,misleading-indentation)
 KBUILD_CFLAGS   += $(call cc-disable-warning,array-bounds)
+KBUILD_CFLAGS   += $(call cc-disable-warning,array-compare)
+KBUILD_CFLAGS   += $(call cc-disable-warning,stringop-overread)
+KBUILD_CFLAGS   += $(call cc-disable-warning,dangling-pointer)
+KBUILD_CFLAGS   += $(call cc-disable-warning,address)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
